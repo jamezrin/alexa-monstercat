@@ -6,6 +6,8 @@ module.exports = {
         EXIT_MESSAGE: '¡Hasta luego!',
         WELCOME_MESSAGE: 'Reproduciendo Monstercat FM Radio',
         HELP_MESSAGE: '',
-        UNSUPPORTED_DEVICE: 'No se ha podido iniciar el reproductor'
+        UNSUPPORTED_DEVICE: 'No se ha podido iniciar el reproductor',
+        NOT_PLAYING_MESSAGE: 'No se estaba reproduciendo nada',
+        UNSUPPORTED_INTENT: 'Esta skill no soporta esa acción'
     }
 };

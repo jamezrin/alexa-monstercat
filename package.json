@@ -18,8 +18,8 @@
   },
   "homepage": "https://github.com/jamezrin/alexa-monstercat#readme",
   "dependencies": {
-    "ask-sdk-core": "^2.7.0",
-    "ask-sdk-model": "^1.25.1",
+    "ask-sdk": "^2.7.0",
+    "ask-sdk-dynamodb-persistence-adapter": "^2.7.0",
     "axios": "^0.19.1",
     "i18next": "^19.0.3",
     "i18next-sprintf-postprocessor": "^0.2.2",
