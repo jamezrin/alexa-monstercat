@@ -1,6 +1,7 @@
 import * as Alexa from 'ask-sdk-core';
 import i18n from 'i18next';
 import sprintf from 'i18next-sprintf-postprocessor';
+import { fetchAudioStreamUrl } from './provider';
 
 const languageStrings = {
     'en': require('./languages/english'),
@@ -18,25 +19,25 @@ const StartIntentHandler = {
         const { attributesManager, requestEnvelope } = handlerInput;
         const requestAttributes = attributesManager.getRequestAttributes();
 
-        if (handlerInput.requestEnvelope.context.System.device.supportedInterfaces['AudioPlayer']) {
+        if (requestEnvelope.context.System.device.supportedInterfaces['AudioPlayer']) {
             const speechText = requestAttributes.t('WELCOME_MESSAGE');
-            const streamUrl = '';
-
+            const streamUrl = await fetchAudioStreamUrl();
             const result = Alexa.ResponseFactory.init();
 
-            result.addAudioPlayerPlayDirective('REPLACE_ALL',
+            result.addAudioPlayerPlayDirective(
+                'REPLACE_ALL',
                 streamUrl,
                 streamUrl,
                 0,
             );
 
-            result.withShouldEndSession(true);
             result.speak(speechText);
             result.withSimpleCard(
                 requestAttributes.t('SKILL_NAME'),
                 speechText
             );
 
+            result.withShouldEndSession(true);
             return result.getResponse();
         } else {
             const speechText = requestAttributes.t('UNSUPPORTED_DEVICE');
@@ -100,7 +101,7 @@ const SessionEndedRequestHandler = {
         return handlerInput.requestEnvelope.request.type === 'SessionEndedRequest';
     },
     handle(handlerInput) {
-        //any cleanup logic goes here
+        // any cleanup logic goes here
         console.log(`Session ended: ${handlerInput}`);
         return handlerInput.responseBuilder.getResponse();
     }

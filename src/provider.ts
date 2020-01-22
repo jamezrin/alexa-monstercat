@@ -1,78 +1,115 @@
 import axios from 'axios';
+import { Parser } from 'm3u8-parser';
 
 const userAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.117 Safari/537.36"
-const tokenObj = {  }
 
-function makeInitialRequest(channelName) {
-    return axios.get(`https://twitch.tv/${channelName}`, {
-        headers: {
-            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-            'accept-encoding': 'gzip, deflate, br',
-            'accept-language': 'en-US,en;q=0.9',
-            'connection': 'keep-alive',
-            'sec-fetch-mode': 'navigate',
-            'sec-fetch-site': 'none',
-            'sec-fetch-user': '?1',
-            'upgrade-insecure-requests': 1
-        },
-        httpsAgent: userAgent,
-    });
+export function parseStream(streamResponse) {
+    const parser = new Parser();
+    parser.push(streamResponse.data);
+    parser.end();
+    return parser.manifest;
 }
 
-function makeTokenRequest(clientId, channelName) {
-    return axios.get(`https://api.twitch.tv/api/channels/${channelName}/access_token`, {
-        headers: {
-            'accept': 'application/x-mpegURL, application/vnd.apple.mpegurl, application/json, text/plain',
-            'accept-encoding': 'gzip, deflate, br',
-            'accept-language': 'en-us',
-            'client-id': clientId,
-            'connection': 'keep-alive',
-            'content-type': 'application/json; charset=UTF-8',
-            'cookie': ''
-        },
-        params: {
-            'oauth_token': 'undefined',
-            'need_https': 'true',
-            'platform': 'web',
-            'player_type': 'site',
-            'player_backend': 'mediaplayer'
-        },
-        httpsAgent: userAgent,
+export function extractAudioStream(streamManifest) {
+    return streamManifest.playlists.find(playlist => {
+        const attributes = playlist['attributes'];
+        return attributes['VIDEO'] === "audio_only";
     });
-}
-
-function makeHlsRequest(tokenObj, channelName) {
-    return axios.get(`https://usher.ttvnw.net/api/channel/hls/${channelName}.m3u8`, {
-        headers: {
-            'accept': 'application/x-mpegURL, application/vnd.apple.mpegurl, application/json, text/plain',
-            'accept-encoding': 'gzip, deflate, br',
-            'connection': 'keep-alive',
-        },
-        params: {
-            'allow_audio_only': 'true',
-            'allow_source': 'true',
-            'fast_bread': 'true',
-            'p': randomInteger(1000000, 9999999),
-            'play_session_id': null,
-            'player_backend': 'mediaplayer',
-            'playlist_include_framerate': 'true',
-            'reassignments_supported': 'true',
-            'sig': null,
-            'supported_codecs': 'avc1',
-            'token': tokenObj,
-            'cdm': 'wv'
-        },
-        httpsAgent: userAgent,
-    })
 }
 
 function randomInteger(min: number, max: number) {
     return Math.random() * (max - min) + min;
 }
 
-(async () => {
-    const channelName = 'monstercat'
+export async function makeKrakenUserRequest(channelName: string) {
+    return axios.get(
+        `https://api.twitch.tv/kraken/users.json`,
+        {
+            params: {
+                'as3': 't',
+                'login': channelName
+            },
+            headers: {
+                'accept': 'application/vnd.twitchtv.v5+json',
+                'accept-encoding': 'gzip, deflate',
+                'client-id': 'pwkzresl8kj2rdj6g7bvxl9ys1wly3j',
+            }
+        }
+    );
+}
 
-    const initialResponse = await makeInitialRequest(channelName);
-    console.log(initialResponse)
-})()
+export async function makeTmiRequest(hostId: string) {
+    return axios.get(
+        `https://tmi.twitch.tv/hosts`,
+        {
+            params: {
+                'as3': 't',
+                'include_logins': '1',
+                'host': hostId
+            },
+            headers: {
+                'accept': 'application/vnd.twitchtv.v5+json',
+                'accept-encoding': 'gzip, deflate',
+                'client-id': 'pwkzresl8kj2rdj6g7bvxl9ys1wly3j',
+            }
+        }
+    );
+}
+
+export async function makeAccessTokenRequest(channelName: string) {
+    return axios.get(
+        `https://api.twitch.tv/api/channels/${channelName}/access_token.json`,
+        {
+            params: {
+                'as3': 't'
+            },
+            headers: {
+                'accept': 'application/vnd.twitchtv.v5+json',
+                'accept-encoding': 'gzip, deflate',
+                'client-id': 'kimne78kx3ncx6brgo4mv6wki5h1ko',
+            }
+        }
+    );
+}
+
+export async function makeStreamRequest(token: any, sig: string, channelName: string) {
+    return axios.get(
+        `https://usher.ttvnw.net/api/channel/hls/${channelName}.m3u8`,
+        {
+            params: {
+                'player': 'twitchweb',
+                'p': randomInteger(100000, 999999),
+                'type': 'any',
+                'allow_source': 'true',
+                'allow_audio_only': 'true',
+                'allow_spectre': 'false',
+                'sig': sig,
+                'token': token,
+                'fast_bread': 'True'
+            },
+            headers: {
+                'accept': '*/*',
+                'accept-encoding': 'gzip, deflate',
+            }
+        }
+    );
+}
+
+export async function fetchTwitchStream() {
+    const tokenResponse = await makeAccessTokenRequest('monstercat');
+
+    const streamResponse = await makeStreamRequest(
+        tokenResponse.data.token,
+        tokenResponse.data.sig,
+        'monstercat'
+    );
+
+    return streamResponse;
+}
+
+export async function fetchAudioStreamUrl() {
+    const streamResponse = await fetchTwitchStream();
+    const streamManifest = parseStream(streamResponse);
+    const audioStream = extractAudioStream(streamManifest);
+    return audioStream.uri;
+}

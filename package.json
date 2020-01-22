@@ -22,7 +22,8 @@
     "ask-sdk-model": "^1.25.1",
     "axios": "^0.19.1",
     "i18next": "^19.0.3",
-    "i18next-sprintf-postprocessor": "^0.2.2"
+    "i18next-sprintf-postprocessor": "^0.2.2",
+    "m3u8-parser": "^4.4.0"
   },
   "files": [
     "dist/**/*"
