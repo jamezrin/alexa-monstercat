@@ -1,76 +1,182 @@
-import axios from 'axios';
+import * as Alexa from 'ask-sdk-core';
+import i18n from 'i18next';
+import sprintf from 'i18next-sprintf-postprocessor';
 
-function makeKrakenRequest(clientId, channelName) {
-  return axios.get(`https://api.twitch.tv/kraken/users.json`, {
-    headers: {
-      'accept': 'application/vnd.twitchtv.v5+json',
-      'accept-encoding': 'gzip, deflate',
-      'client-id': clientId,
-      'connection': 'keep-alive',
+const languageStrings = {
+    'en': require('./languages/english'),
+    'es': require('./languages/spanish')
+}
+
+const StartIntentHandler = {
+    canHandle(handlerInput) {
+        return (handlerInput.requestEnvelope.request.type === 'LaunchRequest'
+            || (handlerInput.requestEnvelope.request.type === 'IntentRequest'
+                && handlerInput.requestEnvelope.request.intent.name === 'StartStreamIntent'));
     },
-    params: {
-      'as3': 't',
-      'login': channelName
+
+    async handle(handlerInput) {
+        const { attributesManager, requestEnvelope } = handlerInput;
+        const requestAttributes = attributesManager.getRequestAttributes();
+
+        if (handlerInput.requestEnvelope.context.System.device.supportedInterfaces['AudioPlayer']) {
+            const speechText = requestAttributes.t('WELCOME_MESSAGE');
+            const streamUrl = '';
+
+            const result = Alexa.ResponseFactory.init();
+
+            result.addAudioPlayerPlayDirective('REPLACE_ALL',
+                streamUrl,
+                streamUrl,
+                0,
+            );
+
+            result.withShouldEndSession(true);
+            result.speak(speechText);
+            result.withSimpleCard(
+                requestAttributes.t('SKILL_NAME'),
+                speechText
+            );
+
+            return result.getResponse();
+        } else {
+            const speechText = requestAttributes.t('UNSUPPORTED_DEVICE');
+
+            return handlerInput.responseBuilder
+                .speak(speechText)
+                .withSimpleCard(
+                    requestAttributes.t('SKILL_NAME'),
+                    speechText)
+                .withShouldEndSession(true)
+                .getResponse();
+        }
     }
-  })
-}
+};
 
-function makeTmiRequest(clientId, hostId) {
-  return axios.get(`https://tmi.twitch.tv/hosts`, {
-    headers: {
-      'accept': 'application/vnd.twitchtv.v5+json',
-      'accept-encoding': 'gzip, deflate',
-      'client-id': clientId,
-      'connection': 'keep-alive',
+const HelpIntentHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+            && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.HelpIntent';
     },
-    params: {
-      'as3': 't',
-      'include_logins': '1',
-      'host': hostId
+    handle(handlerInput) {
+        const { attributesManager } = handlerInput;
+        const requestAttributes = attributesManager.getRequestAttributes();
+
+        const speechText = requestAttributes.t('HELP_MESSAGE');
+
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .reprompt(speechText)
+            .withSimpleCard(
+                requestAttributes.t('SKILL_NAME'),
+                speechText)
+            .getResponse();
     }
-  })
-}
+};
 
-function makeAuthRequest(clientId, clientSecret) {
-  return axios.post('https://id.twitch.tv/oauth2/token', null, {
-    params: {
-      'client_id': clientId,
-      'client_secret': clientSecret,
-      'grant_type': 'client_credentials',
-      'scope': 'channel_read'
+const CancelAndStopIntentHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+            && (handlerInput.requestEnvelope.request.intent.name === 'AMAZON.CancelIntent'
+                || handlerInput.requestEnvelope.request.intent.name === 'AMAZON.StopIntent');
     },
-  })
-}
+    handle(handlerInput) {
+        const { attributesManager } = handlerInput;
+        const requestAttributes = attributesManager.getRequestAttributes();
 
-function makeAccessTokenRequest(clientId, channelName) {
-  return axios.get(`https://api.twitch.tv/api/channels/${channelName}/access_token.json`, {
-    headers: {
-      'accept': 'application/vnd.twitchtv.v5+json',
-      'accept-encoding': 'gzip, deflate',
-      'client-id': clientId,
-      'connection': 'keep-alive',
-    },
-    params: {
-      'as3': 't'
+        const speechText = requestAttributes.t('EXIT_MESSAGE');
+
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .withSimpleCard(
+                requestAttributes.t('SKILL_NAME'),
+                speechText)
+            .withShouldEndSession(true)
+            .getResponse();
     }
-  })
-}
+};
 
-(async () => {
-  const clientId = 'g6e4aps6ktnug6vbnrvd61xohrri6b';
-  const clientSecret = 'gl2trp21buu75urdscqyrgobiopc3h'
-  const channelName = 'monstercat';
+const SessionEndedRequestHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'SessionEndedRequest';
+    },
+    handle(handlerInput) {
+        //any cleanup logic goes here
+        console.log(`Session ended: ${handlerInput}`);
+        return handlerInput.responseBuilder.getResponse();
+    }
+};
 
-  const krakenResponse = await makeKrakenRequest(clientId, channelName);
-  console.log(krakenResponse.data)
+const ErrorHandler = {
+    canHandle() {
+        return true;
+    },
+    handle(handlerInput, error) {
+        console.log(`Error handled: ${error.message}`);
+        console.log(`Error stack: ${error.stack}`);
 
-  const hostId = krakenResponse.data["users"][0]["_id"];
-  const tmiResponse = await makeTmiRequest(clientId, hostId)
-  console.log(tmiResponse.data)
+        const { attributesManager } = handlerInput;
+        const requestAttributes = attributesManager.getRequestAttributes();
 
-  const authResponse = await makeAuthRequest(clientId, clientSecret);
-  console.log(authResponse)
+        const speechText = requestAttributes.t('ERROR_MESSAGE')
 
-  const accessTokenResponse = await makeAccessTokenRequest(clientId, channelName);
-  console.log(accessTokenResponse.data)
-})()
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .reprompt(speechText)
+            .getResponse();
+    },
+};
+
+const LocalizationInterceptor = {
+    process(handlerInput) {
+        const localizationClient = i18n.use(sprintf).init({
+            lng: Alexa.getLocale(handlerInput.requestEnvelope),
+            fallbackLng: 'en',
+            resources: languageStrings,
+        });
+        localizationClient['localize'] = function localize() {
+            const args = arguments;
+            const values = [];
+            for (let i = 1; i < args.length; i += 1) {
+                values.push(args[i]);
+            }
+
+            const value = i18n.t(args[0], {
+                returnObjects: true,
+                postProcess: 'sprintf',
+                sprintf: values,
+            });
+            if (Array.isArray(value)) {
+                return value[Math.floor(Math.random() * value.length)];
+            }
+            return value;
+        };
+        const attributes = handlerInput.attributesManager.getRequestAttributes();
+        attributes.t = function translate(...args) {
+            return localizationClient['localize'](...args);
+        };
+    },
+};
+
+let skill;
+
+exports.handler = async function (event, context) {
+    console.log(`SKILL REQUEST ${JSON.stringify(event)}`);
+
+    if (!skill) {
+        skill = Alexa.SkillBuilders.custom()
+            .addRequestHandlers(
+                StartIntentHandler,
+                HelpIntentHandler,
+                CancelAndStopIntentHandler,
+                SessionEndedRequestHandler,
+            )
+            .addRequestInterceptors(LocalizationInterceptor)
+            .addErrorHandlers(ErrorHandler)
+            .create();
+    }
+
+    const response = await skill.invoke(event, context);
+    console.log(`SKILL RESPONSE ${JSON.stringify(response)}`);
+
+    return response;
+};

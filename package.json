@@ -5,11 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "dev": "ts-node-dev --respawn src/index.ts",
-    "start": "ts-node src/index.ts",
-    "prepare": "npm run build",
-    "postversion": "git push && git push --tags"
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
@@ -22,13 +18,17 @@
   },
   "homepage": "https://github.com/jamezrin/alexa-monstercat#readme",
   "dependencies": {
+    "ask-sdk-core": "^2.7.0",
+    "ask-sdk-model": "^1.25.1",
     "axios": "^0.19.1",
-    "twitch-get-stream": "^0.5.0"
+    "i18next": "^19.0.3",
+    "i18next-sprintf-postprocessor": "^0.2.2"
   },
   "files": [
     "dist/**/*"
   ],
   "devDependencies": {
+    "@types/node": "^13.1.8",
     "ts-node": "^8.5.4",
     "ts-node-dev": "^1.0.0-pre.44",
     "typescript": "^3.7.4"
