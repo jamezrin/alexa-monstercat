@@ -117,8 +117,10 @@ const ResumeIntentHandler = {
     const result = Alexa.ResponseFactory.init();
 
     result.addAudioPlayerPlayDirective('REPLACE_ALL', streamUrl, streamUrl, 0);
-
-    result.withSimpleCard(requestAttributes.t('SKILL_NAME'), requestAttributes.t('WELCOME_MESSAGE'));
+    result.withSimpleCard(
+      requestAttributes.t('SKILL_NAME'),
+      requestAttributes.t('WELCOME_MESSAGE'),
+    );
 
     return result.getResponse();
   },
@@ -226,9 +228,11 @@ const LocalizationInterceptor = {
         postProcess: 'sprintf',
         sprintf: values,
       });
+
       if (Array.isArray(value)) {
         return value[Math.floor(Math.random() * value.length)];
       }
+
       return value;
     };
     const attributes = handlerInput.attributesManager.getRequestAttributes();
