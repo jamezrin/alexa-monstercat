@@ -5,9 +5,8 @@ import sprintf from 'i18next-sprintf-postprocessor';
 import i18n from 'i18next';
 
 import {
-  StartIntentHandler,
+  StartAndResumeIntentHandler,
   PauseIntentHandler,
-  ResumeIntentHandler,
   NonRelevantIntentHandler,
   HelpIntentHandler,
   CancelAndStopIntentHandler,
@@ -23,7 +22,7 @@ const ErrorHandler: ErrorHandler = {
   canHandle() {
     return true;
   },
-  handle(handlerInput: HandlerInput, error) {
+  handle(handlerInput: HandlerInput, error: Error) {
     console.log(`Error handled: ${error.message}`);
     console.log(`Error stack: ${error.stack}`);
 
@@ -80,11 +79,10 @@ exports.handler = async function(event, context) {
   if (!skill) {
     skill = Alexa.SkillBuilders.custom()
       .addRequestHandlers(
-        StartIntentHandler,
-        ResumeIntentHandler,
+        StartAndResumeIntentHandler,
         PauseIntentHandler,
-        NonRelevantIntentHandler,
         HelpIntentHandler,
+        NonRelevantIntentHandler,
         CancelAndStopIntentHandler,
         SessionEndedRequestHandler,
       )

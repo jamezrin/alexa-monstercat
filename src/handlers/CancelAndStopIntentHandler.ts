@@ -13,7 +13,8 @@ const CancelAndStopIntentHandler: RequestHandler = {
     const requestAttributes = attributesManager.getRequestAttributes();
 
     // Delete current entry in the database
-    // await attributesManager.deletePersistentAttributes();
+    console.log(`Deleting cached stream: ${handlerInput}`);
+    await attributesManager.deletePersistentAttributes();
 
     const speechText = requestAttributes.t('EXIT_MESSAGE');
     return handlerInput.responseBuilder

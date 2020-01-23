@@ -11,7 +11,8 @@ export function getPersistenceAdapter(tableName: string): DynamoDbPersistenceAda
   });
 }
 
-export function checkStreamValid(streamTimestamp: string, requestTimestamp: string): boolean {
+export function checkStreamTimeValid(streamTimestamp: string, requestTimestamp: string): boolean {
+  if (!streamTimestamp || !requestTimestamp) return false;
   const parsedStreamTimestamp = DateTime.fromISO(streamTimestamp);
   const parsedRequestTimestamp = DateTime.fromISO(requestTimestamp);
   const hourDiff = parsedRequestTimestamp.diff(parsedStreamTimestamp, 'hours');

@@ -1,5 +1,6 @@
 import { HandlerInput, RequestHandler } from 'ask-sdk';
 import { fetchAudioStreamUrl } from '../provider';
+import { checkStreamTimeValid } from '../utils';
 
 const StartIntentHandler: RequestHandler = {
   canHandle(handlerInput: HandlerInput) {
@@ -9,7 +10,8 @@ const StartIntentHandler: RequestHandler = {
       (request.type === 'IntentRequest' &&
         (request.intent.name === 'StartStreamIntent' ||
           request.intent.name === 'AMAZON.StartOverIntent' ||
-          request.intent.name === 'AMAZON.RepeatIntent'))
+          request.intent.name === 'AMAZON.RepeatIntent' ||
+          request.intent.name === 'AMAZON.ResumeIntent'))
     );
   },
 
@@ -19,10 +21,21 @@ const StartIntentHandler: RequestHandler = {
 
     if (requestEnvelope.context.System.device.supportedInterfaces['AudioPlayer']) {
       const speechText = requestAttributes.t('WELCOME_MESSAGE');
-      const streamUrl = await fetchAudioStreamUrl();
-
-      // Store the stream url for pausing/resuming without requesting again
       const persistentAttributes = (await attributesManager.getPersistentAttributes()) || {};
+      const cachedStreamUrl = persistentAttributes.cachedStreamUrl;
+      const cachedStreamTimestamp = persistentAttributes.cachedStreamTimestamp;
+      const requestTimestamp = requestEnvelope.request.timestamp;
+
+      if (cachedStreamUrl && checkStreamTimeValid(cachedStreamTimestamp, requestTimestamp)) {
+        console.log(`Started playing cached stream: ${handlerInput}`);
+        return handlerInput.responseBuilder
+          .withSimpleCard(requestAttributes.t('SKILL_NAME'), speechText)
+          .addAudioPlayerPlayDirective('REPLACE_ALL', cachedStreamUrl, cachedStreamUrl, 0)
+          .getResponse();
+      }
+
+      console.log(`Started playing fetch a new stream: ${handlerInput}`);
+      const streamUrl = await fetchAudioStreamUrl();
       persistentAttributes.cachedStreamUrl = streamUrl;
       persistentAttributes.cachedStreamTimestamp = requestEnvelope.request.timestamp;
       attributesManager.setPersistentAttributes(persistentAttributes);
