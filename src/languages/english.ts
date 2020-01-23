@@ -4,7 +4,8 @@ module.exports = {
     GENERIC_LANG: 'english',
     ERROR_MESSAGE: 'Sorry, an error occurred. Try again later!',
     EXIT_MESSAGE: 'See you next time!',
-    WELCOME_MESSAGE: 'Now playing Monstercat FM Radio',
+    WELCOME_MESSAGE: 'Welcome to Monstercat FM Radio',
+    WELCOME_BACK_MESSAGE: 'Welcome back to Monstercat FM Radio',
     HELP_MESSAGE:
       'This skill plays music from the Monstercat Music livestream. ' +
       'This livestream is available 24/7. ' +

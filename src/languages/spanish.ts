@@ -4,7 +4,8 @@ module.exports = {
     GENERIC_LANG: 'spanish',
     ERROR_MESSAGE: 'Ha ocurrido un error, por favor inténtalo otra vez',
     EXIT_MESSAGE: '¡Hasta luego!',
-    WELCOME_MESSAGE: 'Reproduciendo Monstercat FM Radio',
+    WELCOME_MESSAGE: 'Bienvenido a Monstercat FM Radio',
+    WELCOME_BACK_MESSAGE: 'Bienvenido de nuevo a Monstercat FM Radio',
     HELP_MESSAGE:
       'Esta skill reproduce música del directo de música de Monstercat. ' +
       'Este directo está activo 24/7. ' +

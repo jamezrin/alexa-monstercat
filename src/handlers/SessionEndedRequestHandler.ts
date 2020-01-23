@@ -5,7 +5,7 @@ const SessionEndedRequestHandler: RequestHandler = {
     return handlerInput.requestEnvelope.request.type === 'SessionEndedRequest';
   },
   async handle(handlerInput: HandlerInput) {
-    console.log(`Session ended: ${handlerInput}`);
+    console.log(`Session ended: ${JSON.stringify(handlerInput)}`);
     return handlerInput.responseBuilder.getResponse();
   },
 };

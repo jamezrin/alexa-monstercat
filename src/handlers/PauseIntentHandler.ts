@@ -7,11 +7,9 @@ const PauseIntentHandler: RequestHandler = {
       handlerInput.requestEnvelope.request.intent.name === 'AMAZON.PauseIntent'
     );
   },
+  // TODO: Say something
   handle(handlerInput: HandlerInput) {
-    return handlerInput.responseBuilder
-      .addAudioPlayerStopDirective()
-      .withShouldEndSession(false)
-      .getResponse();
+    return handlerInput.responseBuilder.addAudioPlayerStopDirective().getResponse();
   },
 };
 

@@ -7,7 +7,9 @@ import i18n from 'i18next';
 import {
   StartAndResumeIntentHandler,
   PauseIntentHandler,
+  PlaybackFailedHandler,
   NonRelevantIntentHandler,
+  NonRelevantPlaybackHandler,
   HelpIntentHandler,
   CancelAndStopIntentHandler,
   SessionEndedRequestHandler,
@@ -83,8 +85,10 @@ exports.handler = async function(event, context) {
         PauseIntentHandler,
         HelpIntentHandler,
         NonRelevantIntentHandler,
+        NonRelevantPlaybackHandler,
         CancelAndStopIntentHandler,
         SessionEndedRequestHandler,
+        PlaybackFailedHandler,
       )
       .withPersistenceAdapter(getPersistenceAdapter('alexa-monstercat'))
       .addRequestInterceptors(LocalizationInterceptor)
