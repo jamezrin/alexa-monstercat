@@ -1,6 +1,6 @@
 import * as Alexa from 'ask-sdk';
 import { HandlerInput, ErrorHandler, RequestInterceptor, Skill } from 'ask-sdk';
-import { DynamoDbPersistenceAdapter } from 'ask-sdk-dynamodb-persistence-adapter';
+import { getPersistenceAdapter } from './utils';
 import sprintf from 'i18next-sprintf-postprocessor';
 import i18n from 'i18next';
 
@@ -71,13 +71,6 @@ const LocalizationInterceptor: RequestInterceptor = {
     };
   },
 };
-
-function getPersistenceAdapter(tableName): DynamoDbPersistenceAdapter {
-  return new DynamoDbPersistenceAdapter({
-    tableName: tableName,
-    createTable: true,
-  });
-}
 
 let skill: Skill;
 
