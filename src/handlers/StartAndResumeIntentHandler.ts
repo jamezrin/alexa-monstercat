@@ -31,7 +31,8 @@ const StartAndResumeIntentHandler: RequestHandler = {
 
         const responseBuilder = handlerInput.responseBuilder
           .withSimpleCard(requestAttributes.t('SKILL_NAME'), speechText)
-          .addAudioPlayerPlayDirective('REPLACE_ALL', cachedStreamUrl, cachedStreamUrl, 0);
+          .addAudioPlayerPlayDirective('REPLACE_ALL', cachedStreamUrl, cachedStreamUrl, 0)
+          .withShouldEndSession(true);
 
         if (
           requestEnvelope.request.type === 'LaunchRequest' ||
@@ -55,7 +56,8 @@ const StartAndResumeIntentHandler: RequestHandler = {
       const responseBuilder = handlerInput.responseBuilder
         .speak(speechText)
         .withSimpleCard(requestAttributes.t('SKILL_NAME'), speechText)
-        .addAudioPlayerPlayDirective('REPLACE_ALL', streamUrl, streamUrl, 0);
+        .addAudioPlayerPlayDirective('REPLACE_ALL', streamUrl, streamUrl, 0)
+        .withShouldEndSession(true);
       return responseBuilder.getResponse();
     } else {
       const speechText = requestAttributes.t('UNSUPPORTED_DEVICE');
